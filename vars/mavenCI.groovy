@@ -47,7 +47,7 @@ def call(Map pipelineParameters) {
             configFileProvider([configFile(fileId: 'maven-settings', variable: 'MAVEN_SETTINGS')]) {
 
                def content = readFile "${MAVEN_SETTINGS}"
-               echo "settings.xml ${constent}"
+               echo "settings.xml ${content}"
                sh "git config --global user.email jenkins@jenkins.com"
  
                def releaseVersion = pom.version.replace("-SNAPSHOT", "-${BUILD_NUMBER}")
