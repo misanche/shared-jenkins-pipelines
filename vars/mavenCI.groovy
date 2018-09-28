@@ -40,12 +40,20 @@ def call(Map pipelineParameters) {
       def pom = readMavenPom file: "pom.xml"
       def developmentVersion = pom.version
 
-      if (pipelineParameters.gitBranch != 'master') {
+      if (pipelineParameters.gitBranch == 'master') {
     
-         stage("Maven deploy") {
+         stage("Maven release") {
 
             configFileProvider([configFile(fileId: 'maven-settings', variable: 'MAVEN_SETTINGS')]) {
-               sh 'mvn -s $MAVEN_SETTINGS clean deploy -DskipTests=true'
+
+               sh "git config --global user.email jenkins@jenkins.com"
+ 
+               def releaseVersion = pom.version.replace("-SNAPSHOT", "-${BUILD_NUMBER}")
+
+               echo "Generating tag ${releaseVersion} in git and uploading artifact to artifact manager. Development version will be set to ${developmentVersion}"
+
+               sh "mvn -s $MAVEN_SETTINGS org.apache.maven.plugins:maven-release-plugin:2.5:clean org.apache.maven.plugins:maven-release-plugin:2.5:prepare org.apache.maven.plugins:maven-release-plugin:2.5:perform -DreleaseVersion=${releaseVersion} -DdevelopmentVersion=${developmentVersion} -DautoVersionSubmodules=true -Dtag=${releaseVersion} -Darguments=\"-Dmaven.javadoc.skip=true\""
+          
             }
 
          }
